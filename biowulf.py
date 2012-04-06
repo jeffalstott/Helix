@@ -1,18 +1,46 @@
+__author__ = """\n""".join(['Jeff Alstott <jeffalstott@gmail.com>'])
+
 class Swarm(object):
-    def __init__(self, memory_requirement=4, swarm_directory = '/home/alstottj/Code/swarmfiles/',\
-            job_directory = '/home/alstottj/Code/jobfiles/', \
+    """A class for submitting jobs to Biowulf.
+
+    __init__(self, memory_requirement=4, swarm_directory = '~/.swarmfiles/', job_directory = '~/.jobfiles/', python_location = '/usr/local/Python/2.7.2/bin/python')
+    If they don't already exist, creates the directories swarm_directory and job_directory, where job and swarm scripts are written to.
+    There is no cleanup for these scripts after the jobs are run and done, so one you're done with any debugging delete them manually.
+
+    add_job(self, job_string, no_python=False)
+    Adds the job job_string to the swarm file, prefaced by python_location. If you are not running a Python command or script, the job_string can be called directly, without the python_location, using the no_python=True keyword.
+
+    submit(self)
+    Submits the jobs added with add_job to the cluster using swarm, using the memory requirement given at initiation."""
+
+    def __init__(self, memory_requirement=4, swarm_directory = '~/.swarmfiles/',\
+            job_directory = '~/.jobfiles/', \
             python_location = '/usr/local/Python/2.7.2/bin/python'):
         self.memory_requirement =  memory_requirement
-        self.swarm_directory = swarm_directory
-        self.job_directory = job_directory
-        self.python_location = python_location
+        from os.path import expanduser
+        self.swarm_directory = expanduser(swarm_directory)
+        self.job_directory = expanduser(job_directory)
+        self.python_location = expanduser(python_location)
+
+        import os, errno
+        #Try to make the swarm and job file directories. If they already exist, move on
+        try:
+                os.makedirs(self.job_directory)
+        except OSError, e:
+                if e.errno != errno.EEXIST:
+                            raise
+        try:
+                os.makedirs(self.swarm_directory)
+        except OSError, e:
+                if e.errno != errno.EEXIST:
+                            raise
 
         try:
             self.max_swarm = int(open(self.swarm_directory+'max_swarm_file.txt', 'r').read())
         except:
             print("Constructing max_swarm_file")
             from os import listdir
-            swarms = [int(a) for a in listdir(swarm_directory)]
+            swarms = [int(a) for a in listdir(self.swarm_directory)]
             if swarms:
                 self.max_swarm = max(swarms)
             else:
@@ -22,6 +50,11 @@ class Swarm(object):
         self.swarm_file = open(self.swarm_file_name, 'w')
 
     def add_job(self, job_string, no_python=False):
+        """Adds a job to be submitted with the swarm.
+        
+        If no_python=False, job_string is assumed to be Python code and written to a .py file in job_directory. A call to this .py file is then written in the swarm file.
+
+        If no_python=True, job_string is a bash command, and put directly in the swarm file without creating a .py file in job_directory."""
         if no_python:
             self.swarm_file.write("%s\n" % (job_string))
             return
@@ -49,6 +82,7 @@ class Swarm(object):
                     ' 2>&1  > '+self.job_directory+self.new_job+'_out\n')
 
     def submit(self):
+        """Submits all added jobs to Biowulf"""
         self.swarm_file.close()
         from os import system
         print("Submitting analyses with swarm file "+self.swarm_file_name)
