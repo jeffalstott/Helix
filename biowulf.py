@@ -152,8 +152,7 @@ class QSub(object):
     """
 
     # Simplest script header for PBS job.
-    _script_header = """
-    #!/bin/bash
+    _script_header = """#!/bin/bash
     """
     
     _qsub_command = "qsub -N %(jobname)s -l nodes=%(nodes)s %(params)s"
