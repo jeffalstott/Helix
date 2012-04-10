@@ -177,7 +177,7 @@ class QSub(object):
         """
 
         if not scriptfile_object:
-            scriptfile_object = tempfile.NamedTemporaryFile()
+            scriptfile_object = tempfile.NamedTemporaryFile(dir="/scratch/")
 
         scriptfile_object.write("%(header)s\n%(command)s\n" % dict(header=self._script_header, command=self.command))
         scriptfile_object.file.flush()
