@@ -95,29 +95,74 @@ class Swarm(object):
 
 # Simplest script header for PBS job.
 
+        _LOGGING_LEVEL = {'debug': logging.DEBUG,
+                  'info': logging.INFO,
+                  'warning': logging.WARNING,
+                  'error': logging.ERROR,
+                  'critical': logging.CRITICAL}
+
+_LOGGING_COLOR = {'yellow' : '\033[93m',
+                  'green' : '\033[92m',
+                  'blue' : '\033[94m',
+                  'red' : '\033[91m',
+                  'grey' : '\033[90m',
+                  True : '\033[90m',
+                  False : '\033[90m',}
+
+def make_local_logger(logger_name, level="info", color=False):
+    """Helper function to make local loggers with color.
+    
+    """
+    
+    logger = logging.getLogger(logger_name)
+
+    try:
+        logger.setLevel(_LOGGING_LEVEL[level])
+    except KeyError:
+        logger.setLevel(level)
+    
+    format = "%(asctime)s - %(name)s - " + _LOGGING_COLOR[color] + "%(levelname)s:%(module)s.%(funcName)s\033[0m - %(message)s"
+        
+    formatter = logging.Formatter(format)
+
+    chandler = logging.StreamHandler()
+
+    try:
+        chandler.setLevel(_LOGGING_LEVEL[level])
+    except KeyError:
+        chandler.setLevel(level)
+        
+    chandler.setFormatter(formatter)
+    logger.addHandler(chandler)
+    
+    return logger
+
+
+qsub_logger = make_local_logger("QSub", level="debug", color=True)
+
 class QSub(object):
     """A class for submitting jobs to Biowulf via qsub.
-
+    
     A string of the script header and a string of the command to run are required.
-
-    >>> QSub("echo Hello World")
-    >>> qsub_stdout, qsub_stderr = QSub.submit(jobname="helloworld")
-
+    
+    >>> qsub_object = QSub("echo Hello World")
+    >>> qsub_stdout, qsub_stderr = qsub_object.submit(jobname="helloworld")
+    
     """
 
     _script_header = """
     #!/bin/bash
     """
-
+    
     _qsub_command = "qsub -N %(jobname)s -l nodes=%(nodes)s %(params)s"
     
     def __init__(self, command):
         """Initialize the QSub object.
-
+        
         The command that will be run is required.
         
         """
-
+        
         self.command = command
 
     def _create_script_file(self, scriptfile_object=None):
@@ -153,6 +198,8 @@ class QSub(object):
                                               nodes=nodes,
                                               params=params)
 
+        qsub_logger.debug(qsub_cmd)
+        
         # Redirect stderr and stdout
         if stdout:
             qsub_cmd += " -o %s" % stdout
