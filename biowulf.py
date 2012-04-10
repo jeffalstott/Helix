@@ -99,7 +99,7 @@ class QSub(object):
     
     >>> qsub_object = QSub("echo Hello World")
     >>> qsub_stdout, qsub_stderr = qsub_object.submit(jobname="helloworld")
-    
+
     """
 
     # Simplest script header for PBS job.
@@ -175,7 +175,10 @@ class QSubBlocking(QSub):
 
     The qsub command waits for completion to exit; this is useful for pipelines that are
     controlled or managed outside of PBS.
-        
-    """
 
+    >>> qsub_object = QSubBlocking("echo Hello World")
+    >>> qsub_stdout, qsub_stderr = qsub_object.submit(jobname="helloworld")
+    
+    """
+    
     _qsub_command = "qsub -N %(jobname)s -l nodes=%(nodes)s -W block=true %(params)s"
