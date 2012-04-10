@@ -200,7 +200,6 @@ class QSub(object):
                                               nodes=nodes,
                                               params=params)
 
-        qsub_logger.debug(qsub_cmd)
         
         # Redirect stderr and stdout
         if stdout:
@@ -210,6 +209,8 @@ class QSub(object):
 
         # Set up the qsub command line call
         qsub_cmd = "%(cmd)s %(script)s" % dict(cmd=qsub_cmd, script=scriptfile.name)
+
+        qsub_logger.debug(qsub_cmd)
 
         # run qsub call
         proc = subprocess.Popen(qsub_cmd, shell=shell, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
