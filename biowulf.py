@@ -149,9 +149,9 @@ class QSub(object):
         
         scriptfile = self._create_script_file(scriptfile_object=scriptfile_object)
         
-        qsub_cmd =  % dict(jobname=jobname,
-                           nodes=nodes,
-                           params=params)
+        qsub_cmd =  self._qsub_command % dict(jobname=jobname,
+                                              nodes=nodes,
+                                              params=params)
 
         # Redirect stderr and stdout
         if stdout:
