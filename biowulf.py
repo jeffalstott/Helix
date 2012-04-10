@@ -1,4 +1,7 @@
-__author__ = """\n""".join(['Jeff Alstott <jeffalstott@gmail.com>'])
+__author__ = """\n""".join(['Jeff Alstott <jeffalstott@gmail.com>', 'Kenneth Daily <dailykm@mail.nih.gov'])
+
+import subprocess
+import tempfile
 
 class Swarm(object):
     """A class for submitting jobs to Biowulf.
@@ -88,3 +91,94 @@ class Swarm(object):
         print("Submitting analyses with swarm file "+self.swarm_file_name)
         system('swarm -f '+self.swarm_file_name+' -g '+str(self.memory_requirement)+' -m a')
         open(self.swarm_directory+'max_swarm_file.txt', 'w').write(self.new_swarm)
+
+class QSub(object):
+    """A class for submitting jobs to Biowulf via qsub.
+    
+    A string of the script header and a string of the command to run are required.
+    
+    >>> qsub_object = QSub("echo Hello World")
+    >>> qsub_stdout, qsub_stderr = qsub_object.submit(jobname="helloworld")
+
+    """
+
+    # Simplest script header for PBS job.
+    _script_header = """#!/bin/bash
+    """
+    
+    _qsub_command = "qsub -N %(jobname)s -l nodes=%(nodes)s %(params)s"
+    
+    def __init__(self, command):
+        """Initialize the QSub object.
+        
+        The command that will be run is required.
+        
+        """
+        
+        self.command = command
+
+    def _create_script_file(self, scriptfile_object=None):
+        """Write out a script file.
+
+        If an existing, script file object is not given, will create a temporary one.
+        
+        A given file object must be writable and WILL NOT be removed when closed.
+        If the temporary file is used, it WILL be removed when closed.
+
+        """
+
+        if not scriptfile_object:
+            scriptfile_object = tempfile.NamedTemporaryFile(dir="/scratch/")
+
+        scriptfile_object.write("%(header)s\n%(command)s\n" % dict(header=self._script_header, command=self.command))
+        scriptfile_object.file.flush()
+
+        return scriptfile_object
+        
+    def submit(self, jobname, scriptfile_object=None, nodes=1, params="", stdout=None, stderr=None):
+        """Run a command via qsub.
+        
+        Requires a header string and a job name.
+        
+        """
+
+        assert jobname, "Job name is required!"
+        
+        scriptfile = self._create_script_file(scriptfile_object=scriptfile_object)
+        
+        qsub_cmd =  self._qsub_command % dict(jobname=jobname,
+                                              nodes=nodes,
+                                              params=params)
+
+        
+        # Redirect stderr and stdout
+        if stdout:
+            qsub_cmd += " -o %s" % stdout
+        if stderr:
+            qsub_cmd += " -e %s" % stderr
+
+        # Set up the qsub command line call
+        qsub_cmd = "%(cmd)s %(script)s" % dict(cmd=qsub_cmd, script=scriptfile.name)
+
+        # run qsub call
+        proc = subprocess.Popen(qsub_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        so, se = proc.communicate()
+
+        # Clean up; script file is erased if a temporary one was used.
+        # Maybe should catch keyboard interrupt to make sure the file is deleted then?
+        scriptfile.close()
+
+        return so, se
+
+class QSubBlocking(QSub):
+    """A class for submitting jobs to Biowulf via qsub in blocking mode.
+
+    The qsub command waits for completion to exit; this is useful for pipelines that are
+    controlled or managed outside of PBS.
+
+    >>> qsub_object = QSubBlocking("echo Hello World")
+    >>> qsub_stdout, qsub_stderr = qsub_object.submit(jobname="helloworld")
+    
+    """
+    
+    _qsub_command = "qsub -N %(jobname)s -l nodes=%(nodes)s -W block=true %(params)s"
