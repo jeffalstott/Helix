@@ -184,7 +184,7 @@ class QSub(object):
 
         return scriptfile_object
         
-    def submit(self, jobname, scriptfile_object=None, nodes=1, params="", stdout=None, stderr=None, shell=False):
+    def submit(self, jobname, scriptfile_object=None, nodes=1, params="", stdout=None, stderr=None):
         """Run a command via qsub.
         
         Requires a header string and a job name.
@@ -212,7 +212,7 @@ class QSub(object):
         qsub_logger.debug(qsub_cmd)
 
         # run qsub call
-        proc = subprocess.Popen(qsub_cmd, shell=shell, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        proc = subprocess.Popen(qsub_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         so, se = proc.communicate()
 
         # Clean up; script file is erased if a temporary one was used.
