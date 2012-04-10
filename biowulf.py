@@ -93,9 +93,10 @@ class Swarm(object):
         open(self.swarm_directory+'max_swarm_file.txt', 'w').write(self.new_swarm)
 
 
-# Simplest script header for PBS job.
+# logging
+import logging
 
-        _LOGGING_LEVEL = {'debug': logging.DEBUG,
+_LOGGING_LEVEL = {'debug': logging.DEBUG,
                   'info': logging.INFO,
                   'warning': logging.WARNING,
                   'error': logging.ERROR,
@@ -150,6 +151,7 @@ class QSub(object):
     
     """
 
+    # Simplest script header for PBS job.
     _script_header = """
     #!/bin/bash
     """
