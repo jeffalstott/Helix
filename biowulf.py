@@ -92,55 +92,6 @@ class Swarm(object):
         system('swarm -f '+self.swarm_file_name+' -g '+str(self.memory_requirement)+' -m a')
         open(self.swarm_directory+'max_swarm_file.txt', 'w').write(self.new_swarm)
 
-
-# logging
-import logging
-
-_LOGGING_LEVEL = {'debug': logging.DEBUG,
-                  'info': logging.INFO,
-                  'warning': logging.WARNING,
-                  'error': logging.ERROR,
-                  'critical': logging.CRITICAL}
-
-_LOGGING_COLOR = {'yellow' : '\033[93m',
-                  'green' : '\033[92m',
-                  'blue' : '\033[94m',
-                  'red' : '\033[91m',
-                  'grey' : '\033[90m',
-                  True : '\033[90m',
-                  False : '\033[90m',}
-
-def make_local_logger(logger_name, level="info", color=False):
-    """Helper function to make local loggers with color.
-    
-    """
-    
-    logger = logging.getLogger(logger_name)
-
-    try:
-        logger.setLevel(_LOGGING_LEVEL[level])
-    except KeyError:
-        logger.setLevel(level)
-    
-    format = "%(asctime)s - %(name)s - " + _LOGGING_COLOR[color] + "%(levelname)s:%(module)s.%(funcName)s\033[0m - %(message)s"
-        
-    formatter = logging.Formatter(format)
-
-    chandler = logging.StreamHandler()
-
-    try:
-        chandler.setLevel(_LOGGING_LEVEL[level])
-    except KeyError:
-        chandler.setLevel(level)
-        
-    chandler.setFormatter(formatter)
-    logger.addHandler(chandler)
-    
-    return logger
-
-
-qsub_logger = make_local_logger("QSub", level="debug", color=True)
-
 class QSub(object):
     """A class for submitting jobs to Biowulf via qsub.
     
@@ -208,8 +159,6 @@ class QSub(object):
 
         # Set up the qsub command line call
         qsub_cmd = "%(cmd)s %(script)s" % dict(cmd=qsub_cmd, script=scriptfile.name)
-
-        qsub_logger.debug(qsub_cmd)
 
         # run qsub call
         proc = subprocess.Popen(qsub_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
