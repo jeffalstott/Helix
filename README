@@ -1,1 +1,7 @@
-Helix is a Python package for working with the NIH's Helix system and Biowulf cluster. Right now this is just a single class for submitting swarm jobs to Biowulf.
+Helix is a Python package for working with the NIH's Helix system and Biowulf cluster. 
+
+There are two main functionalities available:
+
+1. submitting swarm jobs (Swarm class)
+2a. submitting qsub jobs (QSub)
+2b. submitting qsub jobs in blocking mode (QSubBlocking)
