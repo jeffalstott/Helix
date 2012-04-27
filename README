@@ -5,3 +5,15 @@ There are two main functionalities available:
 1. submitting swarm jobs (Swarm class)
 2a. submitting qsub jobs (QSub)
 2b. submitting qsub jobs in blocking mode (QSubBlocking)
+
+Installing
+
+After checking out the distribution, simply move into the top-level directory and type:
+
+python setup.py install
+
+Usage:
+
+>>> import helix
+>>> dir(helix)
+....
