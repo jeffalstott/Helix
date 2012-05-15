@@ -1,8 +1,12 @@
 import uuid
+"""
+"""
+
 
 # Note: Can probably do the entire workflow thing using just Job class variables?
 
 class Job(object):
+    """Encapsulates a Job."""
     def __init__(self,command,nodes,params,name=None,dependencies=[],
                  inputs=[],outputs=[],uptodate=False):
         self.inputs=inputs
@@ -15,12 +19,14 @@ class Job(object):
         self.dependencies=dependencies
 
     def addDependencies(self,dependencies):
+        """Add dependencies to the job"""
         self.dependencies=self.dependencies+dependencies
 
     def __repr__(self):
         return "<Job name=%s id=%s command=%s>" % (self.name,str(self._uuid),self.command)
 
     def submit(self):
+        """Submit the job to the queue using helix QSub"""
         name="J"+str(self._uuid)[:10]
         if(self.name is not None):
             name=self.name
@@ -30,6 +36,23 @@ class Job(object):
         return so.strip(),se        
 
 class Workflow(object):
+    """Holds a bunch of jobs and deals with submitting with dependencies
+
+    Use like:
+
+    a = Job(command='hostname',name='a',nodes='1:c2',params='')
+    b = Job(command='hostname',name='b',nodes='1:c2',params='')
+    c = Job(command='hostname',name='c',nodes='1:c2',params='')
+    d = Job(command='hostname',name='d',nodes='1:c2',params='')
+    wf = Workflow()
+    wf.addJobs([a,b,c,d])
+    c.addDependencies([a,b])
+    d.addDependencies([c])
+    print wf.getAllDependencies(d)
+    wf.submit()
+
+"""
+    
     submitLog = {}
     
     def __init__(self,jobs=[]):
@@ -39,10 +62,12 @@ class Workflow(object):
         self._subJobs = {}
             
     def addJobs(self,jobs):
+        """Add more jobs to the workflow"""
         for job in jobs:
             self.jobs.add(job)
         
     def getAllDependencies(self,job,deps=[]):
+        """Simply return all the dependencies (recursively) of a given job"""
         if(len(job.dependencies)==0):
             return(deps)
         else:
